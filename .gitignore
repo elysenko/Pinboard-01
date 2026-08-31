@@ -18,3 +18,13 @@ yarn-error.log*
 # Editor / OS noise
 .DS_Store
 *.swp
+
+# Local environment files. The platform injects DATABASE_URL/JWT_SECRET as real env
+# vars; a committed .env would be auto-loaded by the Prisma CLI and silently override
+# them during `migrate deploy`. Templates (.env.example) stay tracked.
+.env
+.env.*
+!.env.example
+
+# Jest coverage output
+coverage/
