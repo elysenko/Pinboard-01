@@ -5,14 +5,26 @@
     <title>PinBoard</title>
     <script>
       // The base path must be established before the parser reaches any asset URL,
-      // so it is written into the token stream rather than patched onto an existing
-      // tag. This lets one build serve correctly from the site root (/wall) and from
-      // a preview sub-path (/<preview-id>/wall) without a rebuild.
+      // so a <base> element is inserted into <head> synchronously here rather than
+      // patched onto an existing tag. This lets one build serve correctly from the
+      // site root (/wall) and from a preview sub-path (/<preview-id>/wall) without a
+      // rebuild.
+      //
+      // This deliberately avoids building the tag via document.write of an HTML
+      // string: the deploy platform's baseHref templating scans the built
+      // index.html for the base tag's href attribute so it can inject its own
+      // resolved path, and a string-literal-built tag is a false-positive match
+      // for that scan — it spliced text into the middle of the concatenation
+      // expression and corrupted the script. Building the element via DOM APIs
+      // (createElement/setAttribute) never puts that attribute text in the
+      // source, so it can't be mistaken for a real tag.
       (function () {
         var APP_SEGMENTS = ['wall', 'pins', 'login', 'signup', 'admin'];
         var seg = (location.pathname.split('/')[1] || '').trim();
         var base = !seg || APP_SEGMENTS.indexOf(seg) !== -1 ? '/' : '/' + seg + '/';
-        document.write('<base href="' + base + '">');
+        var baseEl = document.createElement('base');
+        baseEl.setAttribute('href', base);
+        document.head.appendChild(baseEl);
       })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
