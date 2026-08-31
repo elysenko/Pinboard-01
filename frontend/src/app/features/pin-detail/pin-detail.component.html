@@ -1,0 +1,58 @@
+<section class="page page--detail" data-testid="pin-detail-page">
+  <a class="back-link" routerLink="/wall" data-testid="back-to-wall">← Back to the wall</a>
+
+  @if (pin(); as pin) {
+    <article class="note-sheet" data-testid="pin-detail">
+      <h2 class="note-sheet__title" data-testid="pin-detail-title">{{ pin.title }}</h2>
+      <p class="note-sheet__body" data-testid="pin-detail-body">{{ pin.body }}</p>
+
+      <dl class="meta">
+        <div class="meta__row">
+          <dt>Pinned</dt>
+          <dd data-testid="pin-created">
+            {{ absolute(pin.createdAt) }} ({{ relative(pin.createdAt) }})
+          </dd>
+        </div>
+        <div class="meta__row">
+          <dt>Last edited</dt>
+          <dd data-testid="pin-updated">
+            {{ wasEdited() ? absolute(pin.updatedAt) : 'Never edited' }}
+          </dd>
+        </div>
+        <div class="meta__row">
+          <dt>Share link</dt>
+          <dd class="meta__id" data-testid="pin-id">/pins/{{ pin.id }}</dd>
+        </div>
+      </dl>
+
+      <div class="detail-actions">
+        <a
+          class="btn btn--primary"
+          routerLink="/wall"
+          [queryParams]="{ modal: 'edit', pinId: pin.id }"
+          data-testid="detail-edit"
+          >Edit pin</a
+        >
+        <a
+          class="btn btn--danger-outline"
+          routerLink="/wall"
+          [queryParams]="{ modal: 'delete', pinId: pin.id }"
+          data-testid="detail-delete"
+          >Delete pin</a
+        >
+      </div>
+    </article>
+  } @else {
+    <div class="state" data-testid="pin-not-found">
+      <span class="state-emoji" aria-hidden="true">🔍</span>
+      <h2>Pin not found</h2>
+      <p>
+        This pin has been deleted, or the link was mistyped. Nothing is stored at
+        <code>/pins/{{ id() }}</code>.
+      </p>
+      <a class="btn btn--primary" routerLink="/wall" data-testid="not-found-back"
+        >Back to the wall</a
+      >
+    </div>
+  }
+</section>

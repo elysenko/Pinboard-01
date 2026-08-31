@@ -1,13 +1,23 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AuthService } from './core/auth.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  // data-testid="app-ready" is the universal readiness landmark: it enters the DOM only
-  // after Angular bootstraps this root component, so the render gate can wait on it to
-  // confirm the SPA hydrated (not a blank shell / 404 / failed bundle). Keep it here.
-  template: `<div data-testid="app-ready"><router-outlet /></div>`,
+  standalone: true,
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {}
+export class AppComponent {
+  private readonly auth = inject(AuthService);
+
+  readonly user = this.auth.user;
+  readonly isAuthenticated = this.auth.isAuthenticated;
+  readonly isAdmin = this.auth.isAdmin;
+
+  logout(): void {
+    this.auth.logout();
+  }
+}

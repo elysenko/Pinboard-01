@@ -2,10 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>App</title>
-    <base href="/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <title>PinBoard</title>
+    <script>
+      // The base path must be established before the parser reaches any asset URL,
+      // so it is written into the token stream rather than patched onto an existing
+      // tag. This lets one build serve correctly from the site root (/wall) and from
+      // a preview sub-path (/<preview-id>/wall) without a rebuild.
+      (function () {
+        var APP_SEGMENTS = ['wall', 'pins', 'login', 'signup', 'admin'];
+        var seg = (location.pathname.split('/')[1] || '').trim();
+        var base = !seg || APP_SEGMENTS.indexOf(seg) !== -1 ? '/' : '/' + seg + '/';
+        document.write('<base href="' + base + '">');
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="PinBoard — a shared wall of sticky notes." />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   </head>
   <body>
     <app-root></app-root>

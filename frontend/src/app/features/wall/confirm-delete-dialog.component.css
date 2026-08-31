@@ -1,0 +1,12 @@
+.dialog--tight { max-width: 420px; }
+
+.lede {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+  .dialog--tight { max-width: none; }
+}

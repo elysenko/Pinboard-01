@@ -1,0 +1,115 @@
+<div
+  class="dialog-backdrop"
+  data-testid="pin-form-backdrop"
+  (click)="cancel.emit()"
+>
+  <div
+    class="dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="pin-form-title"
+    data-testid="pin-form-dialog"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="dialog-head">
+      <div>
+        <h2 class="dialog-title" id="pin-form-title" data-testid="pin-form-title">
+          {{ isEdit() ? 'Edit pin' : 'New pin' }}
+        </h2>
+        <p class="page-sub">
+          {{
+            isEdit()
+              ? 'Update the note and it stays in place on the wall.'
+              : 'Write a note — it goes to the top of the wall.'
+          }}
+        </p>
+      </div>
+      <button
+        type="button"
+        class="icon-btn"
+        aria-label="Close"
+        (click)="cancel.emit()"
+        data-testid="pin-form-close"
+      >
+        ✕
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label class="label" for="pin-title">Title</label>
+        <input
+          id="pin-title"
+          class="input"
+          [class.input--invalid]="showError('title')"
+          type="text"
+          formControlName="title"
+          placeholder="Q3 Roadmap Draft"
+          autocomplete="off"
+          data-testid="pin-title-input"
+        />
+        <div class="field-meta">
+          @if (showError('title')) {
+            <span class="field-error" data-testid="pin-title-error">{{
+              errorFor('title')
+            }}</span>
+          } @else {
+            <span class="field-hint">Required. Shown across the top of the note.</span>
+          }
+          <span
+            class="counter"
+            [class.counter--over]="titleCount() > titleMax"
+            data-testid="pin-title-counter"
+            >{{ titleCount() }}/{{ titleMax }}</span
+          >
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label" for="pin-body">Body</label>
+        <textarea
+          id="pin-body"
+          class="textarea"
+          [class.textarea--invalid]="showError('body')"
+          formControlName="body"
+          placeholder="A sentence or two of detail…"
+          data-testid="pin-body-input"
+        ></textarea>
+        <div class="field-meta">
+          @if (showError('body')) {
+            <span class="field-error" data-testid="pin-body-error">{{
+              errorFor('body')
+            }}</span>
+          } @else {
+            <span class="field-hint">Optional.</span>
+          }
+          <span
+            class="counter"
+            [class.counter--over]="bodyCount() > bodyMax"
+            data-testid="pin-body-counter"
+            >{{ bodyCount() }}/{{ bodyMax }}</span
+          >
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button
+          type="button"
+          class="btn"
+          (click)="cancel.emit()"
+          data-testid="pin-form-cancel"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn--primary"
+          [disabled]="form.invalid"
+          data-testid="pin-form-submit"
+        >
+          {{ isEdit() ? 'Save changes' : 'Pin it' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

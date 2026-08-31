@@ -1,0 +1,118 @@
+<section class="page" data-testid="wall-page">
+  <div class="page-head">
+    <div>
+      <h2 class="page-title" data-testid="wall-heading">The wall</h2>
+      <p class="page-sub" data-testid="wall-count">
+        {{ sortedPins().length }} {{ sortedPins().length === 1 ? 'pin' : 'pins' }} ·
+        newest first · anyone can post
+      </p>
+    </div>
+    <a
+      class="btn btn--primary"
+      routerLink="/wall"
+      [queryParams]="{ modal: 'new' }"
+      data-testid="new-pin-button"
+    >
+      ＋ New pin
+    </a>
+  </div>
+
+  @switch (viewState()) {
+    @case ('loading') {
+      <div class="wall-grid" data-testid="wall-loading" aria-busy="true">
+        @for (s of skeletons; track s) {
+          <div class="skeleton"></div>
+        }
+      </div>
+    }
+    @case ('error') {
+      <div class="state" data-testid="wall-error">
+        <span class="state-emoji" aria-hidden="true">⚠</span>
+        <h3>The wall could not be loaded</h3>
+        <p>Something went wrong reaching the board. Your pins are safe.</p>
+        <a class="btn" routerLink="/wall" data-testid="wall-retry">Try again</a>
+      </div>
+    }
+    @case ('empty') {
+      <div class="state" data-testid="wall-empty">
+        <span class="state-emoji" aria-hidden="true">📌</span>
+        <h3>Nothing pinned yet</h3>
+        <p>The board is clear. Add the first note and it lands right here.</p>
+        <a
+          class="btn btn--primary"
+          routerLink="/wall"
+          [queryParams]="{ modal: 'new' }"
+          data-testid="empty-new-pin"
+          >Write the first pin</a
+        >
+      </div>
+    }
+    @default {
+      <ul class="wall-grid" data-testid="wall-grid">
+        @for (pin of sortedPins(); track pin.id) {
+          <li class="note" attr.data-testid="pin-card-{{ pin.id }}">
+            <h3 class="note-title">
+              <a [routerLink]="['/pins', pin.id]" data-testid="pin-title-link">{{
+                pin.title
+              }}</a>
+            </h3>
+            <p class="note-body">{{ pin.body }}</p>
+            <div class="note-foot">
+              <span class="note-time">{{ relative(pin.createdAt) }}</span>
+              <span class="note-actions">
+                <a
+                  class="icon-btn"
+                  routerLink="/wall"
+                  [queryParams]="{ modal: 'edit', pinId: pin.id }"
+                  attr.aria-label="Edit {{ pin.title }}"
+                  data-testid="pin-edit-button"
+                  >Edit</a
+                >
+                <a
+                  class="icon-btn icon-btn--danger"
+                  routerLink="/wall"
+                  [queryParams]="{ modal: 'delete', pinId: pin.id }"
+                  attr.aria-label="Delete {{ pin.title }}"
+                  data-testid="pin-delete-button"
+                  >Delete</a
+                >
+              </span>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  }
+
+  <p class="state-links" data-testid="wall-state-links">
+    Preview wall states:
+    <a routerLink="/wall" data-testid="state-live">live</a>
+    <a routerLink="/wall" [queryParams]="{ state: 'loading' }" data-testid="state-loading"
+      >loading</a
+    >
+    <a routerLink="/wall" [queryParams]="{ state: 'empty' }" data-testid="state-empty"
+      >empty</a
+    >
+    <a routerLink="/wall" [queryParams]="{ state: 'error' }" data-testid="state-error"
+      >error</a
+    >
+  </p>
+</section>
+
+@if (activeModal() === 'new' || activeModal() === 'edit') {
+  <app-pin-form-dialog
+    [pin]="activeModal() === 'edit' ? targetPin() : null"
+    (save)="saveFromDialog($event)"
+    (cancel)="closeDialog()"
+  />
+}
+
+@if (activeModal() === 'delete') {
+  @if (targetPin(); as pin) {
+    <app-confirm-delete-dialog
+      [pin]="pin"
+      (confirm)="deletePin($event)"
+      (cancel)="closeDialog()"
+    />
+  }
+}

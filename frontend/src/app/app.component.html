@@ -1,0 +1,114 @@
+<!-- data-testid="app-ready" is the readiness landmark: it enters the DOM only after
+     Angular bootstraps this root component. Keep it on the outermost element. -->
+<div class="shell" data-testid="app-ready">
+  <header class="shell-header">
+    <a class="brand" routerLink="/wall" data-testid="brand-link">
+      <span class="brand-pin" aria-hidden="true"></span>
+      <h1 class="brand-name" data-testid="app-title">PinBoard</h1>
+    </a>
+
+    <nav class="top-nav" aria-label="Main">
+      <a
+        class="top-nav__link"
+        routerLink="/wall"
+        routerLinkActive="is-active"
+        data-testid="nav-wall"
+        >The wall</a
+      >
+      @if (isAdmin()) {
+        <a
+          class="top-nav__link"
+          routerLink="/admin/settings"
+          routerLinkActive="is-active"
+          data-testid="nav-admin"
+          >Admin</a
+        >
+      }
+    </nav>
+
+    <div class="top-actions">
+      @if (isAuthenticated()) {
+        <span class="user-chip" data-testid="user-chip">
+          <span class="user-chip__avatar" aria-hidden="true">{{
+            user()!.name.charAt(0)
+          }}</span>
+          <span class="user-chip__name">{{ user()!.name }}</span>
+        </span>
+        <button
+          type="button"
+          class="btn btn--ghost btn--sm"
+          (click)="logout()"
+          data-testid="logout-button"
+        >
+          Log out
+        </button>
+      } @else {
+        <a
+          class="btn btn--ghost btn--sm"
+          routerLink="/login"
+          data-testid="nav-login"
+          >Log in</a
+        >
+        <a
+          class="btn btn--primary btn--sm"
+          routerLink="/signup"
+          data-testid="nav-signup"
+          >Sign up</a
+        >
+      }
+    </div>
+  </header>
+
+  <main class="shell-main">
+    <router-outlet />
+  </main>
+
+  <nav class="tab-bar" aria-label="Primary" data-testid="mobile-tab-bar">
+    <a
+      class="tab"
+      routerLink="/wall"
+      routerLinkActive="is-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      data-testid="tab-wall"
+    >
+      <span class="tab__icon" aria-hidden="true">▦</span>
+      <span class="tab__label">Wall</span>
+    </a>
+    <a
+      class="tab"
+      routerLink="/wall"
+      [queryParams]="{ modal: 'new' }"
+      data-testid="tab-new"
+    >
+      <span class="tab__icon tab__icon--accent" aria-hidden="true">＋</span>
+      <span class="tab__label">New pin</span>
+    </a>
+    @if (isAdmin()) {
+      <a
+        class="tab"
+        routerLink="/admin/settings"
+        routerLinkActive="is-active"
+        data-testid="tab-admin"
+      >
+        <span class="tab__icon" aria-hidden="true">⚙</span>
+        <span class="tab__label">Admin</span>
+      </a>
+    }
+    @if (isAuthenticated()) {
+      <button type="button" class="tab" (click)="logout()" data-testid="tab-logout">
+        <span class="tab__icon" aria-hidden="true">⏻</span>
+        <span class="tab__label">Log out</span>
+      </button>
+    } @else {
+      <a
+        class="tab"
+        routerLink="/login"
+        routerLinkActive="is-active"
+        data-testid="tab-login"
+      >
+        <span class="tab__icon" aria-hidden="true">◔</span>
+        <span class="tab__label">Log in</span>
+      </a>
+    }
+  </nav>
+</div>

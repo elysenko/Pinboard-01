@@ -1,0 +1,69 @@
+<section class="page page--narrow auth" data-testid="login-page">
+  <div class="panel">
+    <h2 class="page-title" data-testid="login-title">Log in to PinBoard</h2>
+    <p class="page-sub auth__sub">
+      The wall is public to read — sign in to manage board settings.
+    </p>
+
+    @if (error()) {
+      <div class="banner banner--danger" role="alert" data-testid="login-error">
+        <p>{{ error() }}</p>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label class="label" for="login-email">Email</label>
+        <input
+          id="login-email"
+          class="input"
+          type="email"
+          formControlName="email"
+          placeholder="ada@pinboard.app"
+          autocomplete="email"
+          data-testid="login-email"
+        />
+      </div>
+
+      <div class="field">
+        <label class="label" for="login-password">Password</label>
+        <input
+          id="login-password"
+          class="input"
+          type="password"
+          formControlName="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          data-testid="login-password"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn--primary btn--block"
+        data-testid="login-submit"
+      >
+        Log in
+      </button>
+    </form>
+
+    <p class="auth__alt">
+      No account yet?
+      <a class="link" routerLink="/signup" data-testid="login-to-signup">Sign up</a>
+    </p>
+
+    <div class="auth__divider"><span>or</span></div>
+
+    <button
+      type="button"
+      class="btn btn--ghost btn--block auth__skip"
+      (click)="skipLogin()"
+      data-testid="demo-login"
+    >
+      Skip login — Demo Mode
+    </button>
+    <p class="auth__note">
+      Demo Mode signs you in as a board admin so every screen is reachable.
+    </p>
+  </div>
+</section>

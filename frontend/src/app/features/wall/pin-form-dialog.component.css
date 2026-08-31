@@ -1,0 +1,5 @@
+.counter {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-subtle);
+  white-space: nowrap;
+}

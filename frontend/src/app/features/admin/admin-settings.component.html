@@ -1,0 +1,89 @@
+<section class="page" data-testid="admin-settings-page">
+  <div class="page-head">
+    <div>
+      <h2 class="page-title" data-testid="admin-heading">Board settings</h2>
+      <p class="page-sub">
+        Credentials for the services behind PinBoard. Admins only.
+      </p>
+    </div>
+    <a class="btn" routerLink="/wall" data-testid="admin-back">Back to the wall</a>
+  </div>
+
+  @if (unconfigured().length > 0) {
+    <div class="banner banner--warn" role="status" data-testid="unconfigured-banner">
+      <span class="banner__icon" aria-hidden="true">⚠</span>
+      <div>
+        <strong>The following need credentials to activate:</strong>
+        <p>
+          @for (service of unconfigured(); track service.key) {
+            <span class="banner__item">{{ service.label }}</span>
+          }
+        </p>
+      </div>
+    </div>
+  } @else {
+    <div class="banner banner--ok" role="status" data-testid="all-configured-banner">
+      <span class="banner__icon" aria-hidden="true">✓</span>
+      <p>Every provisioned service has credentials. Nothing needs your attention.</p>
+    </div>
+  }
+
+  <div class="stack">
+    @for (service of services(); track service.key) {
+      <article class="panel service" attr.data-testid="service-{{ service.key }}">
+        <header class="service__head">
+          <div>
+            <h3 class="service__name">{{ service.label }}</h3>
+            <p class="page-sub">{{ service.description }}</p>
+          </div>
+          @if (service.configured) {
+            <span class="badge badge--ok" data-testid="badge-configured">Configured</span>
+          } @else {
+            <span class="badge badge--warn" data-testid="badge-unconfigured"
+              >Needs credentials</span
+            >
+          }
+        </header>
+
+        @for (field of service.fields; track field.key) {
+          <div class="field">
+            <label class="label" [attr.for]="fieldId(service.key, field.key)">{{
+              field.label
+            }}</label>
+            <input
+              class="input"
+              [id]="fieldId(service.key, field.key)"
+              [type]="field.secret ? 'password' : 'text'"
+              [placeholder]="field.placeholder"
+              [ngModel]="field.value"
+              (ngModelChange)="updateField(service.key, field.key, $event)"
+              [name]="fieldId(service.key, field.key)"
+              autocomplete="off"
+              attr.data-testid="input-{{ field.key }}"
+            />
+            <span class="field-hint">
+              Environment variable <code>{{ field.key }}</code
+              >. Values are masked once saved.
+            </span>
+          </div>
+        }
+
+        <div class="service__foot">
+          @if (savedKey() === service.key) {
+            <span class="service__saved" attr.data-testid="saved-{{ service.key }}"
+              >Saved</span
+            >
+          }
+          <button
+            type="button"
+            class="btn btn--primary"
+            (click)="save(service.key)"
+            attr.data-testid="save-{{ service.key }}"
+          >
+            Save {{ service.label }}
+          </button>
+        </div>
+      </article>
+    }
+  </div>
+</section>

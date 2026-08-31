@@ -1,0 +1,27 @@
+.state-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  margin: var(--space-6) 0 0;
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--color-border-strong);
+  font-size: var(--text-xs);
+  color: var(--color-ink-subtle);
+}
+
+.state-links a {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+  color: var(--color-ink-muted);
+  font-weight: 600;
+}
+
+.state-links a:hover {
+  background: var(--color-surface);
+  color: var(--color-ink);
+}

@@ -1,0 +1,93 @@
+<section class="page page--narrow auth" data-testid="signup-page">
+  <div class="panel">
+    <h2 class="page-title" data-testid="signup-title">Create your PinBoard account</h2>
+    <p class="page-sub auth__sub">
+      The first account on a fresh board becomes its admin.
+    </p>
+
+    @if (error()) {
+      <div class="banner banner--danger" role="alert" data-testid="signup-error">
+        <p>{{ error() }}</p>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label class="label" for="signup-name">Name</label>
+        <input
+          id="signup-name"
+          class="input"
+          type="text"
+          formControlName="name"
+          placeholder="Ada Lovelace"
+          autocomplete="name"
+          data-testid="signup-name"
+        />
+      </div>
+
+      <div class="field">
+        <label class="label" for="signup-email">Email</label>
+        <input
+          id="signup-email"
+          class="input"
+          type="email"
+          formControlName="email"
+          placeholder="ada@pinboard.app"
+          autocomplete="email"
+          data-testid="signup-email"
+        />
+      </div>
+
+      <div class="field">
+        <label class="label" for="signup-password">Password</label>
+        <input
+          id="signup-password"
+          class="input"
+          type="password"
+          formControlName="password"
+          placeholder="At least 6 characters"
+          autocomplete="new-password"
+          data-testid="signup-password"
+        />
+        <span class="field-hint">At least 6 characters.</span>
+      </div>
+
+      <div class="field">
+        <label class="label" for="signup-confirm">Confirm password</label>
+        <input
+          id="signup-confirm"
+          class="input"
+          type="password"
+          formControlName="confirm"
+          placeholder="Repeat your password"
+          autocomplete="new-password"
+          data-testid="signup-confirm"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn--primary btn--block"
+        data-testid="signup-submit"
+      >
+        Create account
+      </button>
+    </form>
+
+    <p class="auth__alt">
+      Already have an account?
+      <a class="link" routerLink="/login" data-testid="signup-to-login">Log in</a>
+    </p>
+
+    <div class="auth__divider"><span>or</span></div>
+
+    <button
+      type="button"
+      class="btn btn--ghost btn--block auth__skip"
+      (click)="skipSignup()"
+      data-testid="demo-signup"
+    >
+      Skip signup — Demo Mode
+    </button>
+  </div>
+</section>

@@ -1,0 +1,44 @@
+<div
+  class="dialog-backdrop"
+  data-testid="delete-backdrop"
+  (click)="cancel.emit()"
+>
+  <div
+    class="dialog dialog--tight"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="delete-title"
+    data-testid="confirm-delete-dialog"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="dialog-head">
+      <h2 class="dialog-title" id="delete-title">Delete this pin?</h2>
+    </div>
+
+    <p class="lede" data-testid="delete-target">“{{ pin().title }}”</p>
+    <div class="banner banner--danger">
+      <p>
+        The pin is removed from the wall for everyone. This cannot be undone.
+      </p>
+    </div>
+
+    <div class="dialog-actions">
+      <button
+        type="button"
+        class="btn"
+        (click)="cancel.emit()"
+        data-testid="delete-cancel"
+      >
+        Keep it
+      </button>
+      <button
+        type="button"
+        class="btn btn--danger"
+        (click)="confirm.emit(pin().id)"
+        data-testid="delete-confirm"
+      >
+        Delete pin
+      </button>
+    </div>
+  </div>
+</div>
