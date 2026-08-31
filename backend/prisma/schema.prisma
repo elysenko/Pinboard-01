@@ -1,3 +1,6 @@
+// PinBoard — Prisma schema
+// Datasource: PostgreSQL (DATABASE_URL)
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,16 +10,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+/// A sticky note on the public wall.
+/// Ordering is `createdAt DESC, id DESC`; the index below backs that read path.
+model Pin {
   id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  role      Role     @default(USER)
+  title     String   @db.VarChar(120)
+  body      String   @default("") @db.VarChar(2000)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
 }
 
-enum Role {
-  USER
+/// Application account. The public pin wall is readable without a User;
+/// accounts exist for the authenticated /admin section.
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         UserRole @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum UserRole {
   ADMIN
+  USER
+}
+
+/// Runtime override layer for service credentials.
+/// `resolveConfig()` reads process.env first and falls back to this table.
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }
