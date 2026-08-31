@@ -16,14 +16,15 @@ export class LoginComponent {
   private readonly auth = inject(AuthService);
 
   readonly error = signal<string | null>(null);
+  readonly pending = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
   });
 
-  /** Resolved entirely in the browser — no network call, so this never hangs or 500s. */
-  submit(): void {
+  /** Exchanges credentials for a JWT via POST /api/auth/login. */
+  async submit(): Promise<void> {
     this.error.set(null);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -31,11 +32,24 @@ export class LoginComponent {
       return;
     }
     const { email, password } = this.form.getRawValue();
-    const result = this.auth.login(email, password);
-    if (!result.ok) this.error.set(result.error ?? 'Could not sign you in.');
+    this.pending.set(true);
+    try {
+      const result = await this.auth.login(email, password);
+      if (!result.ok) this.error.set(result.error ?? 'Could not sign you in.');
+    } finally {
+      this.pending.set(false);
+    }
   }
 
-  skipLogin(): void {
-    this.auth.demoLogin();
+  /** Signs in as the seeded admin account — a real session, not a local stub. */
+  async skipLogin(): Promise<void> {
+    this.error.set(null);
+    this.pending.set(true);
+    try {
+      const result = await this.auth.demoLogin();
+      if (!result.ok) this.error.set(result.error ?? 'Demo Mode is unavailable.');
+    } finally {
+      this.pending.set(false);
+    }
   }
 }

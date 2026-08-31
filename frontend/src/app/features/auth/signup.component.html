@@ -45,11 +45,11 @@
           class="input"
           type="password"
           formControlName="password"
-          placeholder="At least 6 characters"
+          placeholder="At least 8 characters"
           autocomplete="new-password"
           data-testid="signup-password"
         />
-        <span class="field-hint">At least 6 characters.</span>
+        <span class="field-hint">At least 8 characters.</span>
       </div>
 
       <div class="field">
@@ -68,6 +68,7 @@
       <button
         type="submit"
         class="btn btn--primary btn--block"
+        [disabled]="pending()"
         data-testid="signup-submit"
       >
         Create account

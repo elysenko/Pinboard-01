@@ -22,6 +22,12 @@
       </p>
     </div>
 
+    @if (serverError(); as error) {
+      <div class="banner banner--danger" role="alert" data-testid="delete-error">
+        <p>{{ error.message }}</p>
+      </div>
+    }
+
     <div class="dialog-actions">
       <button
         type="button"
@@ -34,6 +40,7 @@
       <button
         type="button"
         class="btn btn--danger"
+        [disabled]="pending()"
         (click)="confirm.emit(pin().id)"
         data-testid="delete-confirm"
       >

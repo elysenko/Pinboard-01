@@ -9,7 +9,18 @@
     <a class="btn" routerLink="/wall" data-testid="admin-back">Back to the wall</a>
   </div>
 
-  @if (unconfigured().length > 0) {
+  @if (error(); as error) {
+    <div class="banner banner--danger" role="alert" data-testid="admin-error">
+      <span class="banner__icon" aria-hidden="true">⚠</span>
+      <p>{{ error.message }}</p>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="banner" role="status" data-testid="admin-loading">
+      <p>Reading service credentials…</p>
+    </div>
+  } @else if (unconfigured().length > 0) {
     <div class="banner banner--warn" role="status" data-testid="unconfigured-banner">
       <span class="banner__icon" aria-hidden="true">⚠</span>
       <div>
@@ -55,7 +66,7 @@
               [id]="fieldId(service.key, field.key)"
               [type]="field.secret ? 'password' : 'text'"
               [placeholder]="field.placeholder"
-              [ngModel]="field.value"
+              [ngModel]="displayValue(field.key, field.value)"
               (ngModelChange)="updateField(service.key, field.key, $event)"
               [name]="fieldId(service.key, field.key)"
               autocomplete="off"
@@ -64,6 +75,9 @@
             <span class="field-hint">
               Environment variable <code>{{ field.key }}</code
               >. Values are masked once saved.
+              @if (field.source === 'env') {
+                Currently supplied by the deployment environment.
+              }
             </span>
           </div>
         }
@@ -77,6 +91,7 @@
           <button
             type="button"
             class="btn btn--primary"
+            [disabled]="savingKey() === service.key"
             (click)="save(service.key)"
             attr.data-testid="save-{{ service.key }}"
           >

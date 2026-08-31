@@ -36,6 +36,12 @@
     </div>
 
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      @if (formError(); as message) {
+        <div class="banner banner--danger" role="alert" data-testid="pin-form-error">
+          <p>{{ message }}</p>
+        </div>
+      }
+
       <div class="field">
         <label class="label" for="pin-title">Title</label>
         <input
@@ -104,7 +110,7 @@
         <button
           type="submit"
           class="btn btn--primary"
-          [disabled]="form.invalid"
+          [disabled]="form.invalid || pending()"
           data-testid="pin-form-submit"
         >
           {{ isEdit() ? 'Save changes' : 'Pin it' }}

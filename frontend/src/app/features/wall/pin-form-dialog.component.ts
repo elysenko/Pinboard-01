@@ -16,6 +16,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { ApiError } from '../../core/http-errors';
 import { CreatePinDto, PIN_BODY_MAX, PIN_TITLE_MAX, Pin } from '../../core/pin.model';
 
 /** Titles that are only whitespace are rejected as empty, mirroring the API's trim-then-validate. */
@@ -35,6 +36,10 @@ export class PinFormDialogComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   readonly pin = input<Pin | null>(null);
+  /** The failure from the last save attempt, so the server has the final word. */
+  readonly serverError = input<ApiError | null>(null);
+  /** True while the save request is in flight — disables the submit button. */
+  readonly pending = input(false);
   readonly save = output<CreatePinDto>();
   readonly cancel = output<void>();
 
@@ -52,6 +57,17 @@ export class PinFormDialogComponent implements OnInit {
   readonly titleCount = computed(() => this.titleValue().length);
   readonly bodyCount = computed(() => this.bodyValue().length);
   readonly isEdit = computed(() => this.pin() !== null);
+
+  /**
+   * Only shown when the server rejected the save for a reason the form could not
+   * predict (offline, 404 on a pin someone else deleted, a 500). Field-level
+   * messages are rendered against their own control instead.
+   */
+  readonly formError = computed(() => {
+    const error = this.serverError();
+    if (error === null) return null;
+    return Object.keys(error.fieldErrors).length > 0 ? null : error.message;
+  });
 
   constructor() {
     this.form.valueChanges.subscribe((v) => {
@@ -71,11 +87,17 @@ export class PinFormDialogComponent implements OnInit {
   }
 
   showError(name: 'title' | 'body'): boolean {
+    if (this.serverFieldError(name) !== null) return true;
     const c = this.form.controls[name];
     return c.invalid && (c.dirty || c.touched);
   }
 
   errorFor(name: 'title' | 'body'): string {
+    // A server rejection outranks the local validator: the API is the authority on
+    // what it will accept, and its message is the one that explains the refusal.
+    const fromServer = this.serverFieldError(name);
+    if (fromServer !== null) return fromServer;
+
     const errors = this.form.controls[name].errors ?? {};
     if (errors['required'] || errors['blank']) return 'Title is required.';
     if (errors['maxlength']) {
@@ -86,7 +108,12 @@ export class PinFormDialogComponent implements OnInit {
     return 'That value is not valid.';
   }
 
+  private serverFieldError(name: 'title' | 'body'): string | null {
+    return this.serverError()?.fieldErrors[name] ?? null;
+  }
+
   submit(): void {
+    if (this.pending()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

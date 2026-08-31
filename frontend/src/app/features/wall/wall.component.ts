@@ -2,12 +2,15 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   input,
   signal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { ApiError } from '../../core/http-errors';
 import { CreatePinDto, Pin } from '../../core/pin.model';
+import { PinsService } from '../../core/pins.service';
 import { formatRelative } from '../../core/time';
 import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
 import { PinFormDialogComponent } from './pin-form-dialog.component';
@@ -25,72 +28,45 @@ type ModalKind = 'new' | 'edit' | 'delete';
 })
 export class WallComponent {
   private readonly router = inject(Router);
+  private readonly pinsService = inject(PinsService);
 
   /** Bound from query params by `withComponentInputBinding()`, so every dialog is deep-linkable. */
   readonly modal = input<string | undefined>(undefined);
   readonly pinId = input<string | undefined>(undefined);
   readonly state = input<string | undefined>(undefined);
 
-  readonly pins = signal<Pin[]>([
-    {
-      id: '9a5f6b1c-0d2e-4a7b-8c31-5d6e7f801a2b',
-      title: 'Q3 Roadmap Draft',
-      body: 'Lock the three headline bets before the planning review on Friday.',
-      createdAt: '2026-08-30T09:12:00.000Z',
-      updatedAt: '2026-08-30T09:12:00.000Z',
-    },
-    {
-      id: '3c8d4e5f-6a7b-48c9-9d0e-1f2a3b4c5d6e',
-      title: 'Migration Checklist',
-      body: 'Snapshot the database, run the dry run, then cut over during the quiet window.',
-      createdAt: '2026-08-29T16:40:00.000Z',
-      updatedAt: '2026-08-29T16:40:00.000Z',
-    },
-    {
-      id: '7e1a2b3c-4d5e-4f60-a1b2-c3d4e5f60718',
-      title: 'Rooftop Garden Plan',
-      body: 'Six planters along the south wall, herbs first, watering rota on the fridge.',
-      createdAt: '2026-08-28T11:05:00.000Z',
-      updatedAt: '2026-08-28T11:05:00.000Z',
-    },
-    {
-      id: 'b2c3d4e5-f607-4819-a2b3-c4d5e6f70819',
-      title: 'Standup notes — Tuesday',
-      body: 'Search indexing is unblocked; billing still waiting on the sandbox key.',
-      createdAt: '2026-08-27T08:30:00.000Z',
-      updatedAt: '2026-08-27T08:30:00.000Z',
-    },
-    {
-      id: 'c4d5e6f7-0819-4a2b-b3c4-d5e6f708192a',
-      title: 'Books to reread',
-      body: 'Design of Everyday Things, Thinking in Systems, and the short Calvino one.',
-      createdAt: '2026-08-25T19:02:00.000Z',
-      updatedAt: '2026-08-25T19:02:00.000Z',
-    },
-    {
-      id: 'd6e7f809-1a2b-4c3d-8e4f-5061728394ab',
-      title: 'Office move — week 1',
-      body: 'Label every crate by team, and keep the good monitor arms out of storage.',
-      createdAt: '2026-08-24T13:47:00.000Z',
-      updatedAt: '2026-08-24T13:47:00.000Z',
-    },
-  ]);
+  /** Live rows from `GET /api/pins`, already ordered newest-first by the service. */
+  readonly sortedPins = this.pinsService.pins;
 
-  /** Newest first, with id as a deterministic tiebreaker — mirrors the API's ordering. */
-  readonly sortedPins = computed(() =>
-    [...this.pins()].sort(
-      (a, b) =>
-        Date.parse(b.createdAt) - Date.parse(a.createdAt) ||
-        b.id.localeCompare(a.id),
-    ),
-  );
+  /** Set while a dialog's save/delete is in flight; cleared on success. */
+  readonly dialogError = signal<ApiError | null>(null);
+  readonly saving = signal(false);
+
+  constructor() {
+    // Forced, so returning to the wall always re-reads the board. The store is
+    // already populated by then, so this refreshes in the background without
+    // dropping the grid back to skeletons.
+    void this.pinsService.load(true);
+    // A dialog opened for a different pin (or closed) starts from a clean slate,
+    // so a validation message from a previous save is never shown against a new one.
+    effect(() => {
+      this.modal();
+      this.pinId();
+      this.dialogError.set(null);
+    });
+  }
 
   readonly viewState = computed<ViewState>(() => {
+    // The footer links force a state so each variant stays reviewable on a live board.
     const requested = this.state();
     if (requested === 'loading' || requested === 'empty' || requested === 'error') {
       return requested;
     }
-    return this.pins().length === 0 ? 'empty' : 'ready';
+    // Only the *first* load shows skeletons; a background refresh keeps the wall up.
+    if (!this.pinsService.loaded()) {
+      return this.pinsService.error() !== null ? 'error' : 'loading';
+    }
+    return this.sortedPins().length === 0 ? 'empty' : 'ready';
   });
 
   readonly activeModal = computed<ModalKind | null>(() => {
@@ -102,7 +78,7 @@ export class WallComponent {
 
   readonly targetPin = computed<Pin | null>(() => {
     const id = this.pinId();
-    return id ? (this.pins().find((p) => p.id === id) ?? null) : null;
+    return id ? (this.sortedPins().find((p) => p.id === id) ?? null) : null;
   });
 
   readonly skeletons = [0, 1, 2, 3, 4, 5];
@@ -111,40 +87,38 @@ export class WallComponent {
     return formatRelative(iso);
   }
 
-  createPin(dto: CreatePinDto): void {
-    const now = new Date().toISOString();
-    this.pins.update((pins) => [
-      {
-        id: `pin-${pins.length + 1}-${now}`,
-        title: dto.title,
-        body: dto.body ?? '',
-        createdAt: now,
-        updatedAt: now,
-      },
-      ...pins,
-    ]);
-    this.closeDialog();
+  /** The error state's "Try again" link re-runs the fetch it failed on. */
+  retry(): void {
+    void this.pinsService.load(true);
   }
 
-  updatePin(id: string, dto: CreatePinDto): void {
-    const now = new Date().toISOString();
-    this.pins.update((pins) =>
-      pins.map((p) =>
-        p.id === id ? { ...p, title: dto.title, body: dto.body ?? '', updatedAt: now } : p,
-      ),
-    );
-    this.closeDialog();
+  async saveFromDialog(dto: CreatePinDto): Promise<void> {
+    const target = this.activeModal() === 'edit' ? this.targetPin() : null;
+    this.saving.set(true);
+    this.dialogError.set(null);
+    try {
+      if (target) await this.pinsService.update(target.id, dto);
+      else await this.pinsService.create(dto);
+      this.closeDialog();
+    } catch (error) {
+      // Stays open with the server's message so the typed note is never lost.
+      this.dialogError.set(error as ApiError);
+    } finally {
+      this.saving.set(false);
+    }
   }
 
-  deletePin(id: string): void {
-    this.pins.update((pins) => pins.filter((p) => p.id !== id));
-    this.closeDialog();
-  }
-
-  saveFromDialog(dto: CreatePinDto): void {
-    const target = this.targetPin();
-    if (this.activeModal() === 'edit' && target) this.updatePin(target.id, dto);
-    else this.createPin(dto);
+  async deletePin(id: string): Promise<void> {
+    this.saving.set(true);
+    this.dialogError.set(null);
+    try {
+      await this.pinsService.remove(id);
+      this.closeDialog();
+    } catch (error) {
+      this.dialogError.set(error as ApiError);
+    } finally {
+      this.saving.set(false);
+    }
   }
 
   /** Every dismissal clears the query params so /wall is the single resting URL. */

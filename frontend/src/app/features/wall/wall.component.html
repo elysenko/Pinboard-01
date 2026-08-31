@@ -30,7 +30,7 @@
         <span class="state-emoji" aria-hidden="true">⚠</span>
         <h3>The wall could not be loaded</h3>
         <p>Something went wrong reaching the board. Your pins are safe.</p>
-        <a class="btn" routerLink="/wall" data-testid="wall-retry">Try again</a>
+        <a class="btn" routerLink="/wall" (click)="retry()" data-testid="wall-retry">Try again</a>
       </div>
     }
     @case ('empty') {
@@ -102,6 +102,8 @@
 @if (activeModal() === 'new' || activeModal() === 'edit') {
   <app-pin-form-dialog
     [pin]="activeModal() === 'edit' ? targetPin() : null"
+    [serverError]="dialogError()"
+    [pending]="saving()"
     (save)="saveFromDialog($event)"
     (cancel)="closeDialog()"
   />
@@ -111,6 +113,8 @@
   @if (targetPin(); as pin) {
     <app-confirm-delete-dialog
       [pin]="pin"
+      [serverError]="dialogError()"
+      [pending]="saving()"
       (confirm)="deletePin($event)"
       (cancel)="closeDialog()"
     />

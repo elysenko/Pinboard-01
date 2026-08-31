@@ -42,6 +42,21 @@
         >
       </div>
     </article>
+  } @else if (fetching()) {
+    <div class="state" data-testid="pin-detail-fetching" aria-busy="true">
+      <span class="state-emoji" aria-hidden="true">📌</span>
+      <h2>Fetching this pin…</h2>
+      <p>One moment while the board is read.</p>
+    </div>
+  } @else if (error() !== null) {
+    <div class="state" data-testid="pin-detail-error">
+      <span class="state-emoji" aria-hidden="true">⚠</span>
+      <h2>This pin could not be loaded</h2>
+      <p>{{ error()?.message }}</p>
+      <a class="btn btn--primary" routerLink="/wall" data-testid="pin-error-back"
+        >Back to the wall</a
+      >
+    </div>
   } @else {
     <div class="state" data-testid="pin-not-found">
       <span class="state-emoji" aria-hidden="true">🔍</span>
