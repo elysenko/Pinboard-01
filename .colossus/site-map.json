@@ -1,0 +1,47 @@
+{
+  "site": {
+    "name": "tu-prep-vdjl5fzt",
+    "site_id": "tu-prep-vdjl5fzt"
+  },
+  "meta": {
+    "generated_by": "declared"
+  },
+  "front_end": {
+    "pages": [
+      {
+        "name": "Settings",
+        "page_id": "admin-settings",
+        "url": "/admin/settings",
+        "linked_page_ids": []
+      },
+      {
+        "name": "Login",
+        "page_id": "login",
+        "url": "/login",
+        "linked_page_ids": []
+      },
+      {
+        "name": ":id",
+        "page_id": "pins-id",
+        "url": "/pins/:id",
+        "linked_page_ids": []
+      },
+      {
+        "name": "Signup",
+        "page_id": "signup",
+        "url": "/signup",
+        "linked_page_ids": []
+      },
+      {
+        "name": "Wall",
+        "page_id": "wall",
+        "url": "/wall",
+        "linked_page_ids": []
+      }
+    ]
+  },
+  "back_end": {
+    "tables": []
+  },
+  "generated_by": "declared"
+}
